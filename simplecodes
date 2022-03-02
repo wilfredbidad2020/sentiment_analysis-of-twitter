@@ -7,7 +7,7 @@ library(tidytext)
 library(tm)
 library(ggplot2)
 
-## you need to apply for developer app at twitter and key in these codes
+## you need to apply for developer app account at twitter and key in your codes 
 
 consumer_key <-
 consumer_secret <-
@@ -36,15 +36,15 @@ russian_var$text <-  gsub("[[:punct:]]", "", russian_var$text)
 ##. next is tidying the text by putting them in tidyformat
 
 
-ukrainetweets <- ukrainefiltered %>% 
+rustweets <- russian_var %>% 
   unnest_tokens(word, text)
 
-ukrainetweets2 <- ukrainetweets %>%
+rustweets2 <- rustweets %>%
   anti_join(stop_words)
 
 ##most frequently used words in the text
 
-ukrainetweets2 %>% # gives you a bar chart of the most frequent words found in the tweets
+rustweets2 %>% # gives you a bar chart of the most frequent words found in the tweets
   count(word, sort = TRUE) %>%
   top_n(15) %>%
   mutate(word = reorder(word, n)) %>%
@@ -67,9 +67,9 @@ library(tidyverse)
 sentiments
 
 
-ukrainesentiments <- ukrainetweets2 %>%  inner_join(get_sentiments("bing")) 
+russentiments <- rustweets2 %>%  inner_join(get_sentiments("bing")) 
 
-ukrainesentiments %>%  count(word,sentiment, sort = TRUE) %>% 
+russentiments %>%  count(word,sentiment, sort = TRUE) %>% 
   group_by(sentiment) %>% top_n(6) %>% 
   ungroup() %>% 
   mutate(word = reorder(word,n)) %>% 

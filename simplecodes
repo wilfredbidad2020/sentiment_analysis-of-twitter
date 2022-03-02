@@ -1,0 +1,81 @@
+##start by installing these libraries
+
+install.packages("twitteR")
+library(twitteR)
+library(dplyr)
+library(tidytext)
+library(tm)
+library(ggplot2)
+
+## you need to apply for developer app at twitter and key in these codes
+
+consumer_key <-
+consumer_secret <-
+access_token <-
+access_secret <-
+setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
+
+##you can now start downloading twitter accounts
+
+russian <- searchTwitter('#Ukraine + Russia', n = 400, since = '2022-01-01', retryOnRateLimit = 1e3)
+russian_var = twListToDF(russian)
+dim(russian_var)
+str(russian_var)
+mean(russian_var$retweetCount)
+
+
+## clean files
+
+russian_var$text <-  gsub("https\\S*", "", russian_var$text)
+russian_var$text<-  gsub("@\\S*", "", russian_var$text) 
+russian_var$text  <-  gsub("amp", "", russian_var$text) 
+russian_var$text <-  gsub("[\r\n]", "", russian_var$text)
+russian_var$text <-  gsub("[[:punct:]]", "", russian_var$text)
+
+
+##. next is tidying the text by putting them in tidyformat
+
+
+ukrainetweets <- ukrainefiltered %>% 
+  unnest_tokens(word, text)
+
+ukrainetweets2 <- ukrainetweets %>%
+  anti_join(stop_words)
+
+##most frequently used words in the text
+
+ukrainetweets2 %>% # gives you a bar chart of the most frequent words found in the tweets
+  count(word, sort = TRUE) %>%
+  top_n(15) %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(x = word, y = n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip() +
+  labs(y = "Count",
+       x = "Unique words",
+       title = "Most frequent words on Ukraine",
+       subtitle = "Stop words removed from the list")
+
+
+##performing sentiment analysis
+
+library(tidytext)
+library(stringr)
+library(tidyverse)
+
+sentiments
+
+
+ukrainesentiments <- ukrainetweets2 %>%  inner_join(get_sentiments("bing")) 
+
+ukrainesentiments %>%  count(word,sentiment, sort = TRUE) %>% 
+  group_by(sentiment) %>% top_n(6) %>% 
+  ungroup() %>% 
+  mutate(word = reorder(word,n)) %>% 
+  ggplot(aes(word,n,fill = sentiment)) + geom_col(show.legend = FALSE)+
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(y = "Contribution to sentiment", x = NULL) +
+  coord_flip()
+
+
